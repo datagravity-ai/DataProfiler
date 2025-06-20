@@ -295,7 +295,9 @@ class TestUnstructuredDataLabeler(unittest.TestCase):
         label_str = entities(data_cells, label_cells)
         for dt in ["csv", "json", "parquet"]:
             data_obj = dp.Data(data=pd.DataFrame([data_str]), data_type=dt)
-            labeler = dp.DataLabeler(labeler_type="unstructured", trainable=True)
+            labeler = dp.DataLabeler(
+                labeler_type="unstructured", trainable=True, force_construct_model=True
+            )
             self.assertIsNotNone(labeler.fit(x=data_obj, y=[label_str]))
             self.assertIsNotNone(labeler.predict(data=data_obj))
 
@@ -312,13 +314,17 @@ class TestUnstructuredDataLabeler(unittest.TestCase):
         three_labels = [entities(d, l) for (d, l) in zipped]
         for dt in ["csv", "json", "parquet"]:
             data_obj = dp.Data(data=data_df, data_type=dt)
-            labeler = dp.DataLabeler(labeler_type="unstructured", trainable=True)
+            labeler = dp.DataLabeler(
+                labeler_type="unstructured", trainable=True, force_construct_model=True
+            )
             self.assertIsNotNone(labeler.fit(x=data_obj, y=three_labels))
             self.assertIsNotNone(labeler.predict(data=data_obj))
 
         # Test with text data object
         text_obj = dp.Data(data=data_str, data_type="text")
-        labeler = dp.DataLabeler(labeler_type="unstructured", trainable=True)
+        labeler = dp.DataLabeler(
+            labeler_type="unstructured", trainable=True, force_construct_model=True
+        )
         self.assertIsNotNone(labeler.fit(x=text_obj, y=[label_str]))
         self.assertIsNotNone(labeler.predict(data=text_obj))
 

@@ -25,7 +25,12 @@ class BaseDataLabeler:
 
     _default_model_loc: str = None  # type: ignore
 
-    def __init__(self, dirpath: str = None, load_options: dict = None) -> None:
+    def __init__(
+        self,
+        dirpath: str = None,
+        load_options: dict = None,
+        force_construct_model: bool = False,
+    ) -> None:
         """
         Initialize DataLabeler class.
 
@@ -39,6 +44,7 @@ class BaseDataLabeler:
             )
         # Example: self._model is an instance of BaseModel
         self._model: BaseModel = None  # type: ignore
+        self.force_construct_model = force_construct_model
 
         # Example: self._preprocessor and self._postprocessor are instances of
         # DataProcessing
@@ -535,7 +541,11 @@ class BaseDataLabeler:
                 "and could not be found as a registered model "
                 "class in BaseModel.".format(str(model_class))
             )
-        self.set_model(model_class.load_from_disk(dirpath))
+
+        model = model_class.load_from_disk(dirpath)
+        if self.force_construct_model:
+            model._construct_model()
+        self.set_model(model)
 
     def _load_preprocessor(
         self,

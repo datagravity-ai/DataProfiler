@@ -29,7 +29,9 @@ class TestStructuredDataLabeler(unittest.TestCase):
             dp.labelers.base_data_labeler.default_labeler_dir,
             dp.labelers.StructuredDataLabeler._default_model_loc,
         )
-        default = dp.labelers.TrainableDataLabeler(dirpath=dirpath)
+        default = dp.labelers.TrainableDataLabeler(
+            dirpath=dirpath, force_construct_model=True
+        )
 
         # validate epoch id
         self.assertEqual(0, default.model._epoch_id)
@@ -295,7 +297,9 @@ class TestStructuredDataLabeler(unittest.TestCase):
         for dt in ["csv", "json", "parquet"]:
             data_obj = dp.Data(data=data, data_type=dt)
             label_obj = dp.Data(data=labels, data_type=dt)
-            labeler = dp.DataLabeler(labeler_type="structured", trainable=True)
+            labeler = dp.DataLabeler(
+                labeler_type="structured", trainable=True, force_construct_model=True
+            )
             self.assertIsNotNone(labeler.fit(x=data_obj, y=label_obj))
             self.assertIsNotNone(labeler.predict(data=data_obj))
 
