@@ -127,12 +127,10 @@ class DataLabeler:
                 dirpath = os.path.join(
                     default_labeler_dir, data_labeler._default_model_loc
                 )
-            if force_construct_model:
+            else:
                 return TrainableDataLabeler(
                     dirpath, load_options, force_construct_model
                 )
-            else:
-                return TrainableDataLabeler(dirpath, load_options)
         return data_labeler(dirpath, load_options)
 
     @classmethod
