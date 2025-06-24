@@ -11,7 +11,7 @@ import operator
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
-from numpy.lib.histograms import (  # type: ignore[attr-defined]
+from numpy.lib._histograms_impl import (  # type: ignore[attr-defined]
     _get_outer_edges,
     _hist_bin_selectors,
     _unsigned_subtract,

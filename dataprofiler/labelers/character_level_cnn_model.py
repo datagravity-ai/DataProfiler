@@ -573,7 +573,19 @@ class CharacterLevelCnnModel(BaseTrainableModel, metaclass=AutoSubRegistrationMe
 
         # Compile the model
         softmax_output_layer_name = self._model.output_names[0]
-        losses = {softmax_output_layer_name: "categorical_crossentropy"}
+        all_outputs = self._model.output_names
+
+        losses = {
+            softmax_output_layer_name: "categorical_crossentropy",
+            all_outputs[1]: "mean_squared_error",
+            all_outputs[2]: "mean_squared_error",
+        }
+
+        loss_weights = {
+            softmax_output_layer_name: 1.0,
+            all_outputs[1]: 0.0,
+            all_outputs[2]: 0.0,
+        }
 
         # use f1 score metric
         f1_score_training = labeler_utils.F1Score(
@@ -587,7 +599,9 @@ class CharacterLevelCnnModel(BaseTrainableModel, metaclass=AutoSubRegistrationMe
             ]
         }
 
-        self._model.compile(loss=losses, optimizer="adam", metrics=metrics)
+        self._model.compile(
+            loss=losses, loss_weights=loss_weights, optimizer="adam", metrics=metrics
+        )
 
         self._epoch_id = 0
         self._model_num_labels = num_labels
@@ -635,7 +649,19 @@ class CharacterLevelCnnModel(BaseTrainableModel, metaclass=AutoSubRegistrationMe
 
         # Compile the model
         softmax_output_layer_name = self._model.output_names[0]
-        losses = {softmax_output_layer_name: "categorical_crossentropy"}
+        all_outputs = self._model.output_names
+
+        losses = {
+            softmax_output_layer_name: "categorical_crossentropy",
+            all_outputs[1]: "mean_squared_error",
+            all_outputs[2]: "mean_squared_error",
+        }
+
+        loss_weights = {
+            softmax_output_layer_name: 1.0,
+            all_outputs[1]: 0.0,
+            all_outputs[2]: 0.0,
+        }
 
         # use f1 score metric
         f1_score_training = labeler_utils.F1Score(
@@ -649,7 +675,9 @@ class CharacterLevelCnnModel(BaseTrainableModel, metaclass=AutoSubRegistrationMe
             ]
         }
 
-        self._model.compile(loss=losses, optimizer="adam", metrics=metrics)
+        self._model.compile(
+            loss=losses, loss_weights=loss_weights, optimizer="adam", metrics=metrics
+        )
         self._epoch_id = 0
         self._model_num_labels = num_labels
         self._model_default_ind = default_ind
@@ -699,19 +727,24 @@ class CharacterLevelCnnModel(BaseTrainableModel, metaclass=AutoSubRegistrationMe
         f1_report: dict = {}
 
         self._model.reset_metrics()
-        softmax_output_layer_name = self._model.output_names[0]
 
         start_time = time.time()
         batch_id = 0
         for x_train, y_train in train_data:
-            model_results = self._model.train_on_batch(
-                x_train, {softmax_output_layer_name: y_train}
-            )
+
+            dummy = np.zeros((y_train.shape[0], y_train.shape[1]), dtype=y_train.dtype)
+
+            model_results = self._model.train_on_batch(x_train, [y_train, dummy, dummy])
             sys.stdout.flush()
             if verbose:
+                loss, acc, f1_score = (
+                    model_results[1],
+                    model_results[2],
+                    model_results[3],
+                )
                 sys.stdout.write(
-                    "\rEPOCH %d, batch_id %d: loss: %f - acc: %f - "
-                    "f1_score %f" % (self._epoch_id, batch_id, *model_results[1:])
+                    f"\rEPOCH {self._epoch_id}, batch {batch_id}: "
+                    f"loss {loss:.4f} – acc {acc:.4f} – f1 {f1_score:.4f}"
                 )
             batch_id += 1
 
@@ -728,13 +761,16 @@ class CharacterLevelCnnModel(BaseTrainableModel, metaclass=AutoSubRegistrationMe
             )
             val_recall = f1_report["weighted avg"]["recall"] if f1_report else np.NAN
             epoch_time = time.time() - start_time
+            loss, acc, f1_score = model_results[1], model_results[2], model_results[3]
             logger.info(
                 "\rEPOCH %d (%ds), loss: %f - acc: %f - f1_score %f -- "
                 "val_f1: %f - val_precision: %f - val_recall %f"
                 % (
                     self._epoch_id,
                     epoch_time,
-                    *model_results[1:],
+                    loss,
+                    acc,
+                    f1_score,
                     val_f1,
                     val_precision,
                     val_recall,
